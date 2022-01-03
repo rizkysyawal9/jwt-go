@@ -33,3 +33,9 @@ func main() {
 		panic(err)
 	}
 }
+
+func AuthTokenMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+
+	}
+}
