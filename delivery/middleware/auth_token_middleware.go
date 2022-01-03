@@ -50,15 +50,31 @@ func (a *AuthTokenMiddleware) RequireToken() gin.HandlerFunc {
 				})
 				return
 			}
-			if token != nil {
-				c.Next()
-			} else {
+			if token == nil {
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 					"message": "Unauthorized",
 				})
 				return
 			}
+			if c.Request.URL.Path == "/logout" {
+				err := a.acctToken.DeleteAccessToken(token)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+						"message": "error logging out",
+					})
+					return
+				}
+			} else {
+				userName, err := a.acctToken.FetchAccessToken(token)
+				if userName == "" || err != nil {
+					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+						"message": "Unauthorized",
+					})
+					return
+				}
+				c.Set("username", userName)
+			}
+			c.Next()
 		}
-
 	}
 }
