@@ -45,20 +45,25 @@ func (t *token) CreateAccessToken(cred *models.Credential) (string, error) {
 	claims.ExpiresAt = end.Unix()
 
 	token := jwt.NewWithClaims(t.Config.JwtSigningMethod, claims)
+	fmt.Println(t.Config.JwtSigningMethod)
+	fmt.Println(t.Config.JwtSignatureKey)
 	return token.SignedString([]byte(t.Config.JwtSignatureKey))
 }
 
 func (t *token) VerifyAccessToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			fmt.Println("error flag one")
 			return nil, fmt.Errorf("Signing method Invalid")
 		} else if method != t.Config.JwtSigningMethod {
+			fmt.Println("error flag two")
 			return nil, fmt.Errorf("Signing method Invalid")
 		}
-		return t.Config.JwtSignatureKey, nil
+		return []byte(t.Config.JwtSignatureKey), nil
 	})
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
+		fmt.Println("error flag three")
 		return nil, err
 	}
 	return claims, nil
